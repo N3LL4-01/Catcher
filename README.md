@@ -14,7 +14,7 @@
 
 https://github.com/user-attachments/assets/fea24641-5dd2-48ba-8110-594312ac8d9a
 
-Catche is a powerful web vulnerability scanner designed to identify security vulnerabilities in web applications. It supports the detection of SQL injection, XSS, insecure file uploads, and many other vulnerabilities.
+Catche is a  web vulnerability scanner designed to identify security vulnerabilities in web applications. It supports the detection of SQL injection, XSS, insecure file uploads, and many other vulnerabilities.
 
 ## Features
 
@@ -30,8 +30,8 @@ Catche is a powerful web vulnerability scanner designed to identify security vul
 
 1. **Clone the repository:**
     ```bash
-    git clone https://github.com/N3LL4-01/Catche.git
-    cd Catche
+    git clone https://github.com/N3LL4-01/Catcher.git
+    cd Catcher
     ```
 
 2. **Install the required dependencies:**
