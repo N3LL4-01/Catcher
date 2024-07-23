@@ -5,6 +5,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options
 from selenium import webdriver
 from colorama import init, Fore, Style
+import platform
 
 
 fg = Fore.GREEN
