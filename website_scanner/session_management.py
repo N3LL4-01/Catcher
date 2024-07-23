@@ -6,6 +6,7 @@ from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from colorama import Fore, Style
+import platform
 import requests
 import os
 
@@ -20,7 +21,14 @@ res = Style.RESET_ALL
 
 
 def check_session_management(domain):
-    geckodriver_path = os.path.join(os.path.dirname(__file__), 'geckodriver.exe')
+    os_type = platform.system()
+    if os_type == "Windows":
+        geckodriver_path = os.path.join(os.path.dirname(__file__), 'geckodriver.exe')
+    elif os_type == "Linux":
+        geckodriver_path = os.path.join(os.path.dirname(__file__), 'geckodriver')
+    else:
+        raise Exception(f"Unsupported OS: {os_type}")
+
     service = FirefoxService(executable_path=geckodriver_path)
     options = Options()
     options.headless = True
