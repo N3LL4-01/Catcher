@@ -24,17 +24,14 @@ def check_dom_changes(domain):
     os_type = platform.system()
     if os_type == "Windows":
         geckodriver_path = os.path.join(os.path.dirname(__file__), 'geckodriver.exe')
-        firefox_binary_path = "C:\\Program Files\\Mozilla Firefox\\firefox.exe"  # Update this path if necessary
     elif os_type == "Linux":
         geckodriver_path = os.path.join(os.path.dirname(__file__), 'geckodriver')
-        firefox_binary_path = "/usr/bin/firefox"  # Update this path if necessary
     else:
         raise Exception(f"Unsupported OS: {os_type}")
 
     service = FirefoxService(executable_path=geckodriver_path)
     options = Options()
     options.headless = True
-    options.binary_location = firefox_binary_path
 
     driver = webdriver.Firefox(service=service, options=options)
     try:
