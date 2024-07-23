@@ -15,7 +15,7 @@
 
 https://github.com/user-attachments/assets/fea24641-5dd2-48ba-8110-594312ac8d9a
 
-Catche is a  web vulnerability scanner designed to identify security vulnerabilities in web applications. It supports the detection of SQL injection, XSS, insecure file uploads, and many other vulnerabilities.
+Catcher is a  web vulnerability scanner designed to identify security vulnerabilities in web applications. It supports the detection of SQL injection, XSS, insecure file uploads, and many other vulnerabilities.
 
 ## Features
 
