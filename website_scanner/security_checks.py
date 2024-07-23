@@ -8,6 +8,7 @@ from website_scanner.check_file_uploads_and_xss import check_file_uploads_and_xs
 from website_scanner.vulnerabilities import detect_vulnerabilities
 from website_scanner.session_management import check_session_management,  check_sql_injection
 from website_scanner.dom_changes import check_dom_changes
+from website_scanner.waf_bypass import test_waf_bypass
 import warnings
 from urllib3.exceptions import InsecureRequestWarning
 
@@ -137,6 +138,7 @@ def scrape_info(domain, cookies):
                 #check_file_uploads_and_xss(domain, cookies, headers)
                 check_captcha(domain, headers, cookies)
                 check_dom_changes(domain)
+                test_waf_bypass(domain)
                 check_session_management(domain)
             else:
                 print(f"{Fore.YELLOW}Skipping checks that require cookies.{Fore.WHITE}")
