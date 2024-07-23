@@ -1,10 +1,13 @@
-from bs4 import BeautifulSoup
-import os
+from selenium import webdriver
+from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.firefox.service import Service as FirefoxService
 from selenium.webdriver.common.by import By
-from selenium.webdriver.firefox.options import Options
-from selenium import webdriver
-from colorama import init, Fore, Style
+from bs4 import BeautifulSoup
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from colorama import Fore, Style
+import requests
+import os
 import platform
 
 
@@ -18,7 +21,6 @@ bd = Style.BRIGHT
 res = Style.RESET_ALL
 
 def check_dom_changes(domain):
-
     os_type = platform.system()
     if os_type == "Windows":
         geckodriver_path = os.path.join(os.path.dirname(__file__), 'geckodriver.exe')
@@ -29,6 +31,12 @@ def check_dom_changes(domain):
     else:
         raise Exception(f"Unsupported OS: {os_type}")
 
+    service = FirefoxService(executable_path=geckodriver_path)
+    options = Options()
+    options.headless = True
+    options.binary_location = firefox_binary_path
+
+    driver = webdriver.Firefox(service=service, options=options)
     try:
         driver.get(domain)
         soup = BeautifulSoup(driver.page_source, 'html.parser')
