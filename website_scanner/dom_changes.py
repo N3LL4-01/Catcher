@@ -1,6 +1,5 @@
 from bs4 import BeautifulSoup
 import os
-import platform
 from selenium.webdriver.firefox.service import Service as FirefoxService
 from selenium.webdriver.common.by import By
 from selenium.webdriver.firefox.options import Options
@@ -17,23 +16,17 @@ flc = Fore.CYAN
 bd = Style.BRIGHT
 res = Style.RESET_ALL
 
-
 def check_dom_changes(domain):
+
     os_type = platform.system()
     if os_type == "Windows":
         geckodriver_path = os.path.join(os.path.dirname(__file__), 'geckodriver.exe')
-        firefox_binary_path = "C:\\Program Files\\Mozilla Firefox\\firefox.exe" 
+        firefox_binary_path = "C:\\Program Files\\Mozilla Firefox\\firefox.exe"  # Update this path if necessary
     elif os_type == "Linux":
         geckodriver_path = os.path.join(os.path.dirname(__file__), 'geckodriver')
-        firefox_binary_path = "/usr/bin/firefox"  
+        firefox_binary_path = "/usr/bin/firefox"  # Update this path if necessary
     else:
         raise Exception(f"Unsupported OS: {os_type}")
-
-    service = FirefoxService(executable_path=geckodriver_path)
-    options = Options()
-    options.binary_location = firefox_binary_path
-    options.headless = True
-    driver = webdriver.Firefox(service=service, options=options)
 
     try:
         driver.get(domain)
@@ -70,9 +63,6 @@ def check_dom_changes(domain):
 
     except Exception as e:
         print(f"{fr}[-] Error checking DOM changes: {e}{fw}")
-
-    finally:
-        driver.quit()
 
     finally:
         driver.quit()
