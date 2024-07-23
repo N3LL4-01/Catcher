@@ -42,6 +42,11 @@ Catche is a  web vulnerability scanner designed to identify security vulnerabili
 3. **Download Geckodriver:**
     Download [Geckodriver](https://github.com/mozilla/geckodriver/releases) and place it in the `website_scanner` directory.
 
+4. **Set executable permissions for Geckodriver (macOS/Linux users only):**
+    ```bash
+    chmod +x path/to/geckodriver
+    ```
+
 ## Usage
 
 1. **Start the scanner:**
@@ -51,3 +56,4 @@ Catche is a  web vulnerability scanner designed to identify security vulnerabili
 
 2. **Follow the prompts:**
     Enter the domain to scan (including `http://` or `https://`).
+
