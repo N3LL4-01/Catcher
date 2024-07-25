@@ -259,12 +259,14 @@ def check_cors(domain):
 def check_security_txt(domain):
     check_path(domain, "/.well-known/security.txt", {}, {})
 
-def check_captcha(domain, headers, cookies):
+def check_captcha_and_cloudflare(domain, headers, cookies):
     try:
         response = requests.get(domain, headers=headers, cookies=cookies, verify=False)
         soup = BeautifulSoup(response.text, 'html.parser')
         forms = soup.find_all('form')
         found_captcha = False
+        found_cloudflare = False
+
         for form in forms:
             if 'captcha' in str(form).lower():
                 print(f"{fg}[+] Captcha found in form{fw}")
@@ -272,5 +274,12 @@ def check_captcha(domain, headers, cookies):
                 break
         if not found_captcha:
             print(f"{fr}[-] No Captcha found in forms{fw}")
+
+        if 'cf-challenge' in response.text.lower() or 'cloudflare' in response.text.lower():
+            print(f"{fg}[+] Cloudflare protection detected{fw}")
+            found_cloudflare = True
+        if not found_cloudflare:
+            print(f"{fr}[-] No Cloudflare protection detected{fw}")
+
     except requests.exceptions.RequestException as e:
-        print(f"{fr}[-] Error checking for Captcha: {e}{fw}")
+        print(f"{fr}[-] Error checking for Captcha or Cloudflare: {e}{fw}")
