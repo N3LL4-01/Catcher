@@ -96,37 +96,54 @@ def scrape_info(domain, cookies):
 
                 #scrape_wordpress_users(domain)
 
-            elif cms == 'Joomla':
-                joomla_paths = [
-                    'administrator/', 'components/', 'images/', 'includes/',
-                    'language/', 'libraries/', 'media/', 'modules/',
-                    'plugins/', 'templates/'
-                ]
-                for path in joomla_paths:
-                    check_path(domain, path, headers, cookies)
+def check_cms_paths(domain, cms, headers=None, cookies=None):
+    if cms == 'Joomla':
+        joomla_paths = [
+            'administrator/', 'components/', 'images/', 'includes/',
+            'language/', 'libraries/', 'media/', 'modules/',
+            'plugins/', 'templates/', 'cache/', 'cli/', 'logs/', 
+            'tmp/', 'xmlrpc/'
+        ]
+        for path in joomla_paths:
+            check_path(domain, path, headers, cookies)
 
-            elif cms == 'Drupal':
-                drupal_paths = [
-                    'core/', 'modules/', 'profiles/', 'sites/',
-                    'themes/'
-                ]
-                for path in drupal_paths:
-                    check_path(domain, path, headers, cookies)
+    elif cms == 'Drupal':
+        drupal_paths = [
+            'core/', 'modules/', 'profiles/', 'sites/',
+            'themes/', 'includes/', 'misc/', 'scripts/',
+            'web.config', 'robots.txt'
+        ]
+        for path in drupal_paths:
+            check_path(domain, path, headers, cookies)
 
-            elif cms == 'Typo3':
-                typo3_paths = [
-                    'typo3/', 'typo3conf/', 'typo3temp/', 'typo3_src/', 'uploads/'
-                ]
-                for path in typo3_paths:
-                    check_path(domain, path, headers, cookies)
+    elif cms == 'Typo3':
+        typo3_paths = [
+            'typo3/', 'typo3conf/', 'typo3temp/', 'typo3_src/', 
+            'uploads/', 'fileadmin/', 'typo3_src/', 'tslib/', 'typo3/sysext/'
+        ]
+        for path in typo3_paths:
+            check_path(domain, path, headers, cookies)
 
-            elif cms == 'Magento':
-                magento_paths = [
-                    'pub/static/', 'var/log/', 'app/etc/', 'vendor/',
-                    'pub/media/', 'app/code/', 'setup/'
-                ]
-                for path in magento_paths:
-                    check_path(domain, path, headers, cookies)
+    elif cms == 'Magento':
+        magento_paths = [
+            'pub/static/', 'var/log/', 'app/etc/', 'vendor/',
+            'pub/media/', 'app/code/', 'setup/', 'bin/', 'dev/', 
+            'lib/', 'phpserver/', 'var/cache/', 'var/page_cache/'
+        ]
+        for path in magento_paths:
+            check_path(domain, path, headers, cookies)
+
+def check_path(domain, path, headers, cookies):
+    url = f"{domain}/{path}"
+    try:
+        response = requests.get(url, headers=headers, cookies=cookies, timeout=10)
+        if response.status_code == 200:
+            print(f"{Fore.GREEN}[+] Accessible path found: {url}{Fore.WHITE}")
+        else:
+            print(f"{Fore.YELLOW}[-] Path not accessible: {url} (Status code: {response.status_code}){Fore.WHITE}")
+    except requests.RequestException as e:
+        print(f"{Fore.RED}[-] Error accessing path {url}: {e}{Fore.WHITE}")
+
 
             elif cms == 'Wix':
                 print(f"{Fore.GREEN}[+] Wix CMS detected; limited checks due to the nature of Wix{Fore.WHITE}")
