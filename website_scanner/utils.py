@@ -62,21 +62,49 @@ def get_ip(domain):
         return None
 
 def get_cookies(domain):
+    os_type = platform.system()
+    if os_type == "Windows":
+        geckodriver_path = os.path.join(os.path.dirname(__file__), 'geckodriver.exe')
+    elif os_type in ["Linux", "Darwin"]:  
+        geckodriver_path = os.path.join(os.path.dirname(__file__), 'geckodriver')
+    else:
+        raise Exception(f"Unsupported OS: {os_type}")
+        
+    service = FirefoxService(executable_path=geckodriver_path)
     options = Options()
     options.headless = True
-    driver = webdriver.Firefox(options=options)
+    driver = webdriver.Firefox(service=service, options=options)
 
     cookies = {}
     try:
         driver.get(domain)
         for cookie in driver.get_cookies():
-            cookies[cookie['name']] = cookie['value']
+            cookie_name = cookie['name']
+            cookies[cookie_name] = cookie['value']
+            is_httponly = cookie.get('httpOnly', False)
+            is_secure = cookie.get('secure', False)
+            samesite = cookie.get('sameSite', 'None')
+
+            print(f"{fg}[+] Cookie: {cookie_name}{fw}")
+            if is_httponly:
+                print(f"    {fg}HttpOnly: {is_httponly}{fw}")
+            else:
+                print(f"    {fr}HttpOnly: {is_httponly} - Vulnerable{fw}")
+
+            if is_secure:
+                print(f"    {fg}Secure: {is_secure}{fw}")
+            else:
+                print(f"    {fr}Secure: {is_secure} - Vulnerable{fw}")
+
+            print(f"    SameSite: {samesite}")
+
     except Exception as e:
         print(f"{fr}[-] Error collecting cookies: {e}{fw}")
     finally:
         driver.quit()
     
     return cookies
+
 
 
 def detect_cms(response):
