@@ -4,6 +4,7 @@ from selenium.webdriver.firefox.options import Options
 from selenium import webdriver
 from colorama import init, Fore, Style
 import platform
+import os
 
 
 fg = Fore.GREEN
