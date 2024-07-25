@@ -62,6 +62,7 @@ def check_session_management(domain):
     finally:
         driver.quit()
 
+
 def check_sql_injection(domain):
     injection_payloads = [
         "' OR '1'='1",
@@ -72,16 +73,28 @@ def check_sql_injection(domain):
         "'; EXEC xp_cmdshell('ping 127.0.0.1') --"
     ]
 
+    query_params = [
+        "id", "name", "search", "q", "query", "item", "category", "product",
+        "page", "user", "username", "email", "login", "pass", "password",
+        "type", "sort", "order", "filter", "view", "action", "cmd", "command",
+        "module", "path", "file", "filename", "dir", "directory", "folder",
+        "content", "data", "date", "time", "year", "month", "day", "event",
+        "title", "description", "comment", "message", "post", "article",
+        "news", "blog", "forum", "thread", "topic", "board", "section",
+        "chapter", "pageid", "postid", "threadid", "articleid", "newsid",
+        "blogid", "forumid", "topicid", "boardid", "sectionid", "chapterid"
+    ]
     vulnerable = False
 
     for payload in injection_payloads:
-        try:
-            response = requests.get(f"{domain}/?id={payload}", timeout=10)
-            if any(error in response.text.lower() for error in ["sql syntax", "mysql", "syntax error"]):
-                print(f"{Fore.RED}[-] Possible SQL injection vulnerability detected with payload: {payload}{Fore.WHITE}")
-                vulnerable = True
-        except requests.RequestException as e:
-            print(f"{Fore.RED}[-] Error testing payload {payload}: {e}{Fore.WHITE}")
+        for param in query_params:
+            try:
+                response = requests.get(f"{domain}/?{param}={payload}", timeout=10)
+                if any(error in response.text.lower() for error in ["sql syntax", "mysql", "syntax error", "sql error", "database error", "invalid query"]):
+                    print(f"{fr}{bd}[-] Possible SQL injection vulnerability detected with payload: {payload} on parameter: {param}{res}")
+                    vulnerable = True
+            except requests.RequestException as e:
+                print(f"{fr}{bd}[-] Error testing payload {payload} on parameter {param}: {e}{res}")
 
     if not vulnerable:
-        print(f"{Fore.GREEN}[+] No SQL injection vulnerabilities detected.{Fore.WHITE}")
+        print(f"{fg}{bd}[+] No SQL injection vulnerabilities detected.{res}")
