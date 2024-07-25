@@ -27,7 +27,7 @@ def check_session_management(domain):
     os_type = platform.system()
     if os_type == "Windows":
         geckodriver_path = os.path.join(os.path.dirname(__file__), 'geckodriver.exe')
-    elif os_type == "Linux":
+    elif os_type == "Linux" or os_type == "Darwin":  
         geckodriver_path = os.path.join(os.path.dirname(__file__), 'geckodriver')
     else:
         raise Exception(f"Unsupported OS: {os_type}")
@@ -35,6 +35,11 @@ def check_session_management(domain):
     service = FirefoxService(executable_path=geckodriver_path)
     options = Options()
     options.headless = True
+
+    driver = webdriver.Firefox(service=service, options=options)
+    try:
+        driver.get(domain)
+        wait = WebDriverWait(driver, 10)
 
     login_paths = [
         "login",
