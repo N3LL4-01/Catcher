@@ -65,10 +65,10 @@ def check_dom_changes(domain):
                 for src in insecure_iframes:
                     print(f"  - {src}")
         else:
-            print(f"{fg}[+] No insecure elements found in DOM.{fw}")
+            print(f"{fr}[+] No insecure elements found in DOM.{fw}")
 
     except Exception as e:
-        print(f"{fr}[-] Error checking DOM changes: {e}{fw}")
+        print(f"{fg}[-] Error checking DOM changes: {e}{fw}")
 
     finally:
         driver.quit()
