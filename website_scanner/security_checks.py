@@ -6,7 +6,7 @@ from colorama import Fore
 from website_scanner.utils import check_captcha, check_security_txt, validate_ssl, check_cors, detect_cms, get_webserver_info, get_os_info, get_php_version, get_ip, check_path, check_plugins_and_themes, scrape_wordpress_users
 from website_scanner.check_file_uploads_and_xss import check_file_uploads_and_xss
 from website_scanner.vulnerabilities import detect_vulnerabilities
-from website_scanner.session_management import check_session_management,  check_sql_injection
+from website_scanner.session_management import check_session_management,  check_sql_injection, extract_social_links
 from website_scanner.dom_changes import check_dom_changes
 from website_scanner.waf_bypass import test_waf_bypass
 import warnings
@@ -137,7 +137,7 @@ def scrape_info(domain, cookies):
 
             if cookies:
                 check_plugins_and_themes(domain, cookies)
-                # check_file_uploads_and_xss(domain, cookies, headers)
+                extract_social_links(domain)
                 check_captcha(domain, headers, cookies)
                 check_dom_changes(domain)
                 test_waf_bypass(domain)
