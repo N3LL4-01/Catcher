@@ -67,15 +67,22 @@ def test_waf_bypass(domain):
 
     driver = webdriver.Firefox(service=service, options=options)
     
+    failed_attempts = 0
+
     try:
         for payload in payloads:
             for param in query_params:
+                if failed_attempts >= 5:
+                    print(f"{fy}{bd}[-] Stopping test after 5 failed attempts{res}")
+                    return
                 test_url = f"{domain}/?{param}={payload}"
                 driver.get(test_url)
                 if payload in driver.page_source:
                     print(f"{fg}{bd}[+] WAF bypassed with payload: {payload} on parameter: {param}{res}")
+                    failed_attempts = 0  # Reset failed attempts if a payload is detected
                 else:
                     print(f"{fr}{bd}[-] Payload not detected: {payload} on parameter: {param}{res}")
+                    failed_attempts += 1
     except Exception as e:
         print(f"{fr}{bd}[-] Error testing WAF bypass: {e}{res}")
     finally:
