@@ -117,11 +117,11 @@ def check_sql_injection(domain):
                 test_url = f"{domain}/?{param}={payload}"
                 response = requests.get(test_url, headers=headers, timeout=10)
                 if any(error in response.text.lower() for error in sql_error_indicators):
-                    print(f"{fr}[-] Possible SQL injection vulnerability detected with payload: {payload} on parameter: {param}{fw}")
+                    print(f"{fg}[-] Possible SQL injection vulnerability detected with payload: {payload} on parameter: {param}{fw}")
                     vulnerable = True
             except requests.RequestException as e:
                 print(f"{fr}[-] Error testing payload {payload} on parameter {param}: {e}{fw}")
 
     if not vulnerable:
-        print(f"{fg}[+] No SQL injection vulnerabilities detected.{fw}")
+        print(f"{fr}[+] No SQL injection vulnerabilities detected.{fw}")
 
