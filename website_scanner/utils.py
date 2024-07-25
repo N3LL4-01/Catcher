@@ -259,7 +259,7 @@ def check_cors(domain):
 def check_security_txt(domain):
     check_path(domain, "/.well-known/security.txt", {}, {})
 
-def check_captcha_and_cloudflare(domain, headers, cookies):
+def check_captcha(domain, headers, cookies):
     try:
         response = requests.get(domain, headers=headers, cookies=cookies, verify=False)
         soup = BeautifulSoup(response.text, 'html.parser')
