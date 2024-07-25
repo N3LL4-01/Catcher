@@ -2,8 +2,11 @@ import socket
 import ssl
 import re
 import requests
+import platform
+import os
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.firefox.service import Service as FirefoxService
 from colorama import Fore, Back, Style, init
 from bs4 import BeautifulSoup
 
