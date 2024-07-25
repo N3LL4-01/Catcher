@@ -4,10 +4,8 @@ from selenium.webdriver.firefox.service import Service as FirefoxService
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-from time import sleep
 from colorama import Fore, Style
-from urllib.parse import urljoin
-import logging
+from bs4 import BeautifulSoup
 import platform
 import requests
 import os
@@ -21,12 +19,11 @@ flc = Fore.CYAN
 bd = Style.BRIGHT
 res = Style.RESET_ALL
 
-
 def check_session_management(domain):
     os_type = platform.system()
     if os_type == "Windows":
         geckodriver_path = os.path.join(os.path.dirname(__file__), 'geckodriver.exe')
-    elif os_type == "Linux" or os_type == "Darwin":
+    elif os_type in ["Linux", "Darwin"]:
         geckodriver_path = os.path.join(os.path.dirname(__file__), 'geckodriver')
     else:
         raise Exception(f"Unsupported OS: {os_type}")
@@ -51,7 +48,7 @@ def check_session_management(domain):
             response = requests.get(full_url, verify=False)
             if response.status_code == 200:
                 driver.get(full_url)
-                if "login" in driver.title.lower() or "sign in" in driver.title.lower() or "anmelden" in driver.title.lower() or "einloggen" in driver.title.lower():
+                if any(keyword in driver.title.lower() for keyword in ["login", "sign in", "anmelden", "einloggen"]):
                     login_pages.append(full_url)
                     print(f"{fg}[+] Login page found at: {full_url}{fw}")
 
@@ -62,81 +59,69 @@ def check_session_management(domain):
     finally:
         driver.quit()
 
+def extract_social_links(domain):
+    social_links = {
+        'facebook': [],
+        'twitter': [],
+        'instagram': [],
+        'youtube': [],
+        'linkedin': [],
+        'pinterest': [],
+        'github': []
+    }
 
-def check_sql_injection(domain, delay=1, proxy=None, user_agents=None):
-    # Set up logging
-    logging.basicConfig(filename='sql_injection_scan.log', level=logging.INFO, 
-                        format='%(asctime)s - %(levelname)s - %(message)s')
+    try:
+        response = requests.get(domain, verify=False)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        links = soup.find_all('a', href=True)
 
-    # List of SQL injection payloads
-    injection_payloads = [
-        "' OR '1'='1",
-        "' OR '1'='1' --",
-        "' OR '1'='1' ({",
-        "' OR '1'='1' /*",
-        "' OR '1'='1' #",
-        "'; EXEC xp_cmdshell('ping 127.0.0.1') --",
-        "admin'--",
-        "admin'/*",
-        "' OR 1=1 --",
-        "' OR 1=1 #",
-        "' OR 1=1/*",
-        "admin' or '1'='1"
-    ]
+        for link in links:
+            href = link['href']
+            if "facebook.com" in href:
+                social_links['facebook'].append(href)
+            elif "twitter.com" in href:
+                social_links['twitter'].append(href)
+            elif "instagram.com" in href:
+                social_links['instagram'].append(href)
+            elif "youtube.com" in href:
+                social_links['youtube'].append(href)
+            elif "linkedin.com" in href:
+                social_links['linkedin'].append(href)
+            elif "pinterest.com" in href:
+                social_links['pinterest'].append(href)
+            elif "github.com" in href:
+                social_links['github'].append(href)
 
-    # List of common query parameters
-    query_params = [
-        "id", "name", "search", "q", "query", "item", "category", "product",
-        "page", "user", "username", "email", "login", "pass", "password",
-        "type", "sort", "order", "filter", "view", "action", "cmd", "command",
-        "module", "path", "file", "filename", "dir", "directory", "folder",
-        "content", "data", "date", "time", "year", "month", "day", "event",
-        "title", "description", "comment", "message", "post", "article",
-        "news", "blog", "forum", "thread", "topic", "board", "section",
-        "chapter", "pageid", "postid", "threadid", "articleid", "newsid",
-        "blogid", "forumid", "topicid", "boardid", "sectionid", "chapterid"
-    ]
+        if any(social_links.values()):
+            print(f"{fg}[+] Social media links found:{fw}")
+            for platform, links in social_links.items():
+                for link in links:
+                    print(f"{fo}{platform.capitalize()}: {fw}{link}")
+        else:
+            print(f"{fy}[-] No social media links found.{fw}")
 
-    # List of common SQL error indicators
-    sql_error_indicators = [
-        "sql syntax", "mysql", "syntax error", "sql error", "database error", 
-        "invalid query", "unclosed quotation mark", "quoted string not properly terminated",
-        "warning: pg_query", "unterminated quoted string", "error executing query",
-        "you have an error in your sql syntax", "unexpected token", "missing right parenthesis"
-    ]
+    except requests.RequestException as e:
+        print(f"{fr}[-] Error extracting social links: {e}{fw}")
+
+def check_sql_injection(domain):
+    injection_payloads = ["' OR '1'='1", "' OR '1'='1' --", "'"]
+    query_params = ["id", "name", "search", "q", "query"]
+    sql_error_indicators = ["sql syntax", "mysql", "syntax error"]
 
     vulnerable = False
-    headers = {'User-Agent': 'Mozilla/5.0'}  # Default User-Agent
+    headers = {'User-Agent': 'Mozilla/5.0'}
 
     for payload in injection_payloads:
         for param in query_params:
             try:
-                # Construct the URL with query parameters
-                test_url = urljoin(domain, f"/?{param}={payload}")
-                
-                # Optionally use proxy
-                proxies = {"http": proxy, "https": proxy} if proxy else None
-                
-                # Rotate User-Agent if provided
-                if user_agents:
-                    headers['User-Agent'] = user_agents[param % len(user_agents)]
-                
-                response = requests.get(test_url, timeout=10, headers=headers, proxies=proxies)
-                
-                # Check for common SQL error indicators
+                test_url = f"{domain}/?{param}={payload}"
+                response = requests.get(test_url, headers=headers, timeout=10)
                 if any(error in response.text.lower() for error in sql_error_indicators):
-                    logging.info(f"Possible SQL injection vulnerability detected with payload: {payload} on parameter: {param}")
-                    print(f"{fr}{bd}[-] Possible SQL injection vulnerability detected with payload: {payload} on parameter: {param}{res}")
+                    print(f"{fr}[-] Possible SQL injection vulnerability detected with payload: {payload} on parameter: {param}{fw}")
                     vulnerable = True
-                
-                sleep(delay)  # Throttle requests
-
             except requests.RequestException as e:
-                logging.error(f"Error testing payload {payload} on parameter {param}: {e}")
-                print(f"{fr}{bd}[-] Error testing payload {payload} on parameter {param}: {e}{res}")
+                print(f"{fr}[-] Error testing payload {payload} on parameter {param}: {e}{fw}")
 
     if not vulnerable:
-        print(f"{fg}{bd}[+] No SQL injection vulnerabilities detected.{res}")
-    else:
-        logging.info("SQL injection scan completed with vulnerabilities detected.")
-        print(f"{fr}{bd}[-] SQL injection scan completed with vulnerabilities detected.{res}")
+        print(f"{fg}[+] No SQL injection vulnerabilities detected.{fw}")
+
