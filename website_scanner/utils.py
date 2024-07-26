@@ -115,7 +115,8 @@ def detect_cms(response):
     version = "Not detected"
     headers = response.headers
     html = response.text.lower()
-    
+
+    # Überprüfen von x-powered-by Header
     if 'x-powered-by' in headers:
         powered_by = headers['x-powered-by'].lower()
         if 'wordpress' in powered_by:
@@ -130,7 +131,7 @@ def detect_cms(response):
             cms = 'Wix'
         elif 'magento' in powered_by:
             cms = 'Magento'
-    
+
     generator_meta = re.search(r'<meta name="generator" content="([^"]+)"', html)
     if generator_meta:
         generator = generator_meta.group(1).lower()
@@ -164,7 +165,7 @@ def detect_cms(response):
             version_search = re.search(r'magento (\d+\.\d+(\.\d+)?)', generator)
             if version_search:
                 version = version_search.group(1)
-    
+
     if cms == "Unknown":
         if 'wp-content' in html or 'wp-includes' in html:
             cms = 'WordPress'
@@ -185,11 +186,14 @@ def detect_cms(response):
             version_search = re.search(r'wix v(\d+\.\d+(\.\d+)?)', html)
             if version_search:
                 version = version_search.group(1)
-        elif 'magento' in html or 'mage-' in html:
-            cms = 'Magento'
-            version_search = re.search(r'magento (\d+\.\d+(\.\d+)?)', html)
-            if version_search:
-                version = version_search.group(1)
+        elif 'mage-' in html or 'magento' in html:
+            if re.search(r'magento (\d+\.\d+(\.\d+)?)', html):
+                cms = 'Magento'
+                version_search = re.search(r'magento (\d+\.\d+(\.\d+)?)', html)
+                if version_search:
+                    version = version_search.group(1)
+            elif 'mage-' in html and 'magento' not in html:
+                pass
     
     return cms, version
     
