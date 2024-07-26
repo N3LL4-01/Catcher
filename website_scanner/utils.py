@@ -131,50 +131,62 @@ def detect_cms(response):
         elif 'magento' in powered_by:
             cms = 'Magento'
     
-    if 'generator' in headers:
-        generator = headers['generator'].lower()
+    generator_meta = re.search(r'<meta name="generator" content="([^"]+)"', html)
+    if generator_meta:
+        generator = generator_meta.group(1).lower()
         if 'wordpress' in generator:
             cms = 'WordPress'
-            version = generator.split(' ')[-1]
+            version_search = re.search(r'wordpress (\d+\.\d+(\.\d+)?)', generator)
+            if version_search:
+                version = version_search.group(1)
         elif 'joomla' in generator:
             cms = 'Joomla'
-            version = generator.split(' ')[-1]
+            version_search = re.search(r'joomla (\d+\.\d+(\.\d+)?)', generator)
+            if version_search:
+                version = version_search.group(1)
         elif 'drupal' in generator:
             cms = 'Drupal'
-            version = generator.split(' ')[-1]
+            version_search = re.search(r'drupal (\d+\.\d+(\.\d+)?)', generator)
+            if version_search:
+                version = version_search.group(1)
         elif 'typo3' in generator:
             cms = 'Typo3'
-            version = generator.split(' ')[-1]
+            version_search = re.search(r'typo3 (\d+\.\d+(\.\d+)?)', generator)
+            if version_search:
+                version = version_search.group(1)
         elif 'wix' in generator:
             cms = 'Wix'
+            version_search = re.search(r'wix v(\d+\.\d+(\.\d+)?)', generator)
+            if version_search:
+                version = version_search.group(1)
         elif 'magento' in generator:
             cms = 'Magento'
-            version = generator.split(' ')[-1]
+            version_search = re.search(r'magento (\d+\.\d+(\.\d+)?)', generator)
+            if version_search:
+                version = version_search.group(1)
     
-    elif 'wordpress' in html:
-        cms = 'WordPress'
-        version_search = re.search(r'content="wordpress (\d+\.\d+(\.\d+)?)"', html)
-        if version_search:
-            version = version_search.group(1)
-    elif 'joomla' in html:
-        cms = 'Joomla'
-        version_search = re.search(r'content="joomla! - open source content management - (\d+\.\d+(\.\d+)?)"', html)
-        if version_search:
-            version = version_search.group(1)
-    elif 'drupal' in html:
-        cms = 'Drupal'
-    elif 'typo3' in html:
-        cms = 'Typo3'
-    elif 'wix' in html:
-        cms = 'Wix'
-    elif 'magento' in html:
-        cms = 'Magento'
-        version_search = re.search(r'magento (\d+\.\d+(\.\d+)?)', html)
-        if version_search:
-            version = version_search.group(1)
+    if cms == "Unknown":
+        if 'wp-content' in html or 'wp-includes' in html:
+            cms = 'WordPress'
+        elif 'joomla' in html:
+            cms = 'Joomla'
+        elif 'sites/default/files' in html or 'sites/all/modules' in html:
+            cms = 'Drupal'
+        elif 'typo3' in html:
+            cms = 'Typo3'
+        elif 'wix' in html and 'wix-code' in html:
+            cms = 'Wix'
+            version_search = re.search(r'wix v(\d+\.\d+(\.\d+)?)', html)
+            if version_search:
+                version = version_search.group(1)
+        elif 'magento' in html or 'mage-' in html:
+            cms = 'Magento'
+            version_search = re.search(r'magento (\d+\.\d+(\.\d+)?)', html)
+            if version_search:
+                version = version_search.group(1)
     
     return cms, version
-
+    
 def get_php_version(headers):
     php_version = "Unknown"
     if 'x-powered-by' in headers:
