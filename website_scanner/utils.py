@@ -114,7 +114,7 @@ def detect_cms(response):
     cms = "Unknown"
     version = "Not detected"
     headers = response.headers
-    html = response.text
+    html = response.text.lower()
     
     if 'x-powered-by' in headers:
         powered_by = headers['x-powered-by'].lower()
@@ -130,6 +130,7 @@ def detect_cms(response):
             cms = 'Wix'
         elif 'magento' in powered_by:
             cms = 'Magento'
+    
     if 'generator' in headers:
         generator = headers['generator'].lower()
         if 'wordpress' in generator:
@@ -149,25 +150,26 @@ def detect_cms(response):
         elif 'magento' in generator:
             cms = 'Magento'
             version = generator.split(' ')[-1]
-    elif 'wordpress' in html.lower():
+    
+    elif 'wordpress' in html:
         cms = 'WordPress'
-        version_search = re.search(r'content="WordPress (\d+\.\d+(\.\d+)?)"', html)
+        version_search = re.search(r'content="wordpress (\d+\.\d+(\.\d+)?)"', html)
         if version_search:
             version = version_search.group(1)
-    elif 'joomla' in html.lower():
+    elif 'joomla' in html:
         cms = 'Joomla'
-        version_search = re.search(r'content="Joomla! - Open Source Content Management - (\d+\.\d+(\.\d+)?)"', html)
+        version_search = re.search(r'content="joomla! - open source content management - (\d+\.\d+(\.\d+)?)"', html)
         if version_search:
             version = version_search.group(1)
-    elif 'drupal' in html.lower():
+    elif 'drupal' in html:
         cms = 'Drupal'
-    elif 'typo3' in html.lower():
+    elif 'typo3' in html:
         cms = 'Typo3'
-    elif 'wix' in html.lower():
+    elif 'wix' in html:
         cms = 'Wix'
-    elif 'magento' in html.lower():
+    elif 'magento' in html:
         cms = 'Magento'
-        version_search = re.search(r'Magento (\d+\.\d+(\.\d+)?)', html)
+        version_search = re.search(r'magento (\d+\.\d+(\.\d+)?)', html)
         if version_search:
             version = version_search.group(1)
     
