@@ -172,8 +172,14 @@ def detect_cms(response):
             cms = 'Joomla'
         elif 'sites/default/files' in html or 'sites/all/modules' in html:
             cms = 'Drupal'
+            version_search = re.search(r'drupal-(\d+\.\d+(\.\d+)?)', html)
+            if version_search:
+                version = version_search.group(1)
         elif 'typo3' in html:
             cms = 'Typo3'
+            version_search = re.search(r'typo3 (\d+\.\d+(\.\d+)?)', html)
+            if version_search:
+                version = version_search.group(1)
         elif 'wix' in html and 'wix-code' in html:
             cms = 'Wix'
             version_search = re.search(r'wix v(\d+\.\d+(\.\d+)?)', html)
