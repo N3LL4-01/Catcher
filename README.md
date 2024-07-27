@@ -12,20 +12,33 @@
   </pre>
 </p>
 
+## DISCLAIMER - It's a community project and not finished yet!
 
-https://github.com/user-attachments/assets/fea24641-5dd2-48ba-8110-594312ac8d9a
 
-Catcher is a  web vulnerability scanner designed to identify security vulnerabilities in web applications. It supports the detection of SQL injection, XSS, insecure file uploads, and many other vulnerabilities.
 
-## Features
 
-- **CMS Detection**: Detects popular CMS like WordPress, Joomla, Drupal, and Typo3.
-- **File Upload Checks**: Checks for insecure file uploads and configuration files.
+
+
+https://github.com/user-attachments/assets/4faa2968-0ae1-45f7-9cd0-4f994f64949e
+
+
+
+
+
+Catcher is a web vulnerability scanner that detects security holes in web applications. It supports the detection of CMS, XSS, unsafe file uploads and many other vulnerabilities. Please remember that it is a tool that provides you with the relevant information at first glance to give you an idea of ​​your target domain. It does NOT replace a professional scan! It is intended as an aid!
+
+## Goal-Features
+
+- **CMS Detection**: Detects popular CMS like WordPress, Joomla, Drupal, and Typo3. 
+- **File Upload Checks**: Checks for insecure file uploads and configuration files. 
 - **XSS Detection**: Detects Cross-Site Scripting (XSS) vulnerabilities.
-- **SQL Injection**: Checks for SQL injection vulnerabilities.
-- **Session Management**: Checks for session management vulnerabilities.
-- **DOM Changes**: Analyzes insecure elements in the DOM.
+- **SQL Injection**: Checks for simple SQL injection vulnerabilities.
+- **Session Management**: Checks for session management vulnerabilities. 
+- **DOM Changes**: Analyzes insecure elements in the DOM. 
 - **Captcha Detection**: Detects missing captchas in forms.
+- **Cookie Grabbing**: Collects cookies from the domain for further analysis.
+- **Domain Information**: Provides initial domain information like IP address, server details, etc.
+
 
 ## Installation
 

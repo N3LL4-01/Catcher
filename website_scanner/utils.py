@@ -2,8 +2,11 @@ import socket
 import ssl
 import re
 import requests
+import platform
+import os
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.firefox.service import Service as FirefoxService
 from colorama import Fore, Back, Style, init
 from bs4 import BeautifulSoup
 
@@ -32,11 +35,6 @@ def print_logo():
         "                         ────█░░█░░░░░█░░█────",
         "                         ─▄▄──█░░░▀█▀░░░█──▄▄─",
         "                         █░░█─▀▄░░░░░░░▄▀─█░░█",
-        "                         █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█",
-        "                         █░░╦─╦╔╗╦─╔╗╔╗╔╦╗╔╗░░█",
-        "                         █░░║║║╠─║─║─║║║║║╠─░░█",
-        "                         █░░╚╩╝╚╝╚╝╚╝╚╝╩─╩╚╝░░█",
-        "                         █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█",
         "        @@@@@@@  @@@@@@  @@@@@@@  @@@@@@@ @@@  @@@ @@@@@@@@ @@@@@@@ ",
         "        !@@      @@!  @@@   @@!   !@@      @@!  @@@ @@!      @@!  @@@",
         "        !@!      @!@!@!@!   @!!   !@!      @!@!@!@! @!!!:!   @!@!!@! ",
@@ -67,15 +65,42 @@ def get_ip(domain):
         return None
 
 def get_cookies(domain):
+    os_type = platform.system()
+    if os_type == "Windows":
+        geckodriver_path = os.path.join(os.path.dirname(__file__), 'geckodriver.exe')
+    elif os_type in ["Linux", "Darwin"]:  
+        geckodriver_path = os.path.join(os.path.dirname(__file__), 'geckodriver')
+    else:
+        raise Exception(f"Unsupported OS: {os_type}")
+        
+    service = FirefoxService(executable_path=geckodriver_path)
     options = Options()
     options.headless = True
-    driver = webdriver.Firefox(options=options)
+    driver = webdriver.Firefox(service=service, options=options)
 
     cookies = {}
     try:
         driver.get(domain)
         for cookie in driver.get_cookies():
-            cookies[cookie['name']] = cookie['value']
+            cookie_name = cookie['name']
+            cookies[cookie_name] = cookie['value']
+            is_httponly = cookie.get('httpOnly', False)
+            is_secure = cookie.get('secure', False)
+            samesite = cookie.get('sameSite', 'None')
+
+            print(f"{fg}[+] Cookie: {cookie_name}{fw}")
+            if is_httponly:
+                print(f"    {fg}HttpOnly: {is_httponly}{fw}")
+            else:
+                print(f"    {fr}HttpOnly: {is_httponly} - Vulnerable{fw}")
+
+            if is_secure:
+                print(f"    {fg}Secure: {is_secure}{fw}")
+            else:
+                print(f"    {fr}Secure: {is_secure} - Vulnerable{fw}")
+
+            print(f"    SameSite: {samesite}")
+
     except Exception as e:
         print(f"{fr}[-] Error collecting cookies: {e}{fw}")
     finally:
@@ -84,12 +109,14 @@ def get_cookies(domain):
     return cookies
 
 
+
 def detect_cms(response):
     cms = "Unknown"
     version = "Not detected"
     headers = response.headers
-    html = response.text
-    
+    html = response.text.lower()
+
+    # Überprüfen von x-powered-by Header
     if 'x-powered-by' in headers:
         powered_by = headers['x-powered-by'].lower()
         if 'wordpress' in powered_by:
@@ -104,49 +131,72 @@ def detect_cms(response):
             cms = 'Wix'
         elif 'magento' in powered_by:
             cms = 'Magento'
-    if 'generator' in headers:
-        generator = headers['generator'].lower()
+
+    generator_meta = re.search(r'<meta name="generator" content="([^"]+)"', html)
+    if generator_meta:
+        generator = generator_meta.group(1).lower()
         if 'wordpress' in generator:
             cms = 'WordPress'
-            version = generator.split(' ')[-1]
+            version_search = re.search(r'wordpress (\d+\.\d+(\.\d+)?)', generator)
+            if version_search:
+                version = version_search.group(1)
         elif 'joomla' in generator:
             cms = 'Joomla'
-            version = generator.split(' ')[-1]
+            version_search = re.search(r'joomla (\d+\.\d+(\.\d+)?)', generator)
+            if version_search:
+                version = version_search.group(1)
         elif 'drupal' in generator:
             cms = 'Drupal'
-            version = generator.split(' ')[-1]
+            version_search = re.search(r'drupal (\d+\.\d+(\.\d+)?)', generator)
+            if version_search:
+                version = version_search.group(1)
         elif 'typo3' in generator:
             cms = 'Typo3'
-            version = generator.split(' ')[-1]
+            version_search = re.search(r'typo3 (\d+\.\d+(\.\d+)?)', generator)
+            if version_search:
+                version = version_search.group(1)
         elif 'wix' in generator:
             cms = 'Wix'
+            version_search = re.search(r'wix v(\d+\.\d+(\.\d+)?)', generator)
+            if version_search:
+                version = version_search.group(1)
         elif 'magento' in generator:
             cms = 'Magento'
-            version = generator.split(' ')[-1]
-    elif 'wordpress' in html.lower():
-        cms = 'WordPress'
-        version_search = re.search(r'content="WordPress (\d+\.\d+(\.\d+)?)"', html)
-        if version_search:
-            version = version_search.group(1)
-    elif 'joomla' in html.lower():
-        cms = 'Joomla'
-        version_search = re.search(r'content="Joomla! - Open Source Content Management - (\d+\.\d+(\.\d+)?)"', html)
-        if version_search:
-            version = version_search.group(1)
-    elif 'drupal' in html.lower():
-        cms = 'Drupal'
-    elif 'typo3' in html.lower():
-        cms = 'Typo3'
-    elif 'wix' in html.lower():
-        cms = 'Wix'
-    elif 'magento' in html.lower():
-        cms = 'Magento'
-        version_search = re.search(r'Magento (\d+\.\d+(\.\d+)?)', html)
-        if version_search:
-            version = version_search.group(1)
+            version_search = re.search(r'magento (\d+\.\d+(\.\d+)?)', generator)
+            if version_search:
+                version = version_search.group(1)
+
+    if cms == "Unknown":
+        if 'wp-content' in html or 'wp-includes' in html:
+            cms = 'WordPress'
+        elif 'joomla' in html:
+            cms = 'Joomla'
+        elif 'sites/default/files' in html or 'sites/all/modules' in html:
+            cms = 'Drupal'
+            version_search = re.search(r'drupal-(\d+\.\d+(\.\d+)?)', html)
+            if version_search:
+                version = version_search.group(1)
+        elif 'typo3' in html:
+            cms = 'Typo3'
+            version_search = re.search(r'typo3 (\d+\.\d+(\.\d+)?)', html)
+            if version_search:
+                version = version_search.group(1)
+        elif 'wix' in html and 'wix-code' in html:
+            cms = 'Wix'
+            version_search = re.search(r'wix v(\d+\.\d+(\.\d+)?)', html)
+            if version_search:
+                version = version_search.group(1)
+        elif 'mage-' in html or 'magento' in html:
+            if re.search(r'magento (\d+\.\d+(\.\d+)?)', html):
+                cms = 'Magento'
+                version_search = re.search(r'magento (\d+\.\d+(\.\d+)?)', html)
+                if version_search:
+                    version = version_search.group(1)
+            elif 'mage-' in html and 'magento' not in html:
+                pass
     
     return cms, version
-
+    
 def get_php_version(headers):
     php_version = "Unknown"
     if 'x-powered-by' in headers:
@@ -265,6 +315,8 @@ def check_captcha(domain, headers, cookies):
         soup = BeautifulSoup(response.text, 'html.parser')
         forms = soup.find_all('form')
         found_captcha = False
+        found_cloudflare = False
+
         for form in forms:
             if 'captcha' in str(form).lower():
                 print(f"{fg}[+] Captcha found in form{fw}")
@@ -272,5 +324,12 @@ def check_captcha(domain, headers, cookies):
                 break
         if not found_captcha:
             print(f"{fr}[-] No Captcha found in forms{fw}")
+
+        if 'cf-challenge' in response.text.lower() or 'cloudflare' in response.text.lower():
+            print(f"{fg}[+] Cloudflare protection detected{fw}")
+            found_cloudflare = True
+        if not found_cloudflare:
+            print(f"{fr}[-] No Cloudflare protection detected{fw}")
+
     except requests.exceptions.RequestException as e:
-        print(f"{fr}[-] Error checking for Captcha: {e}{fw}")
+        print(f"{fr}[-] Error checking for Captcha or Cloudflare: {e}{fw}")
