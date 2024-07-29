@@ -4,11 +4,16 @@ import re
 import requests
 import platform
 import os
+import dns.resolver
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.firefox.service import Service as FirefoxService
-from colorama import Fore, Back, Style, init
+from colorama import Fore, Style, init
 from bs4 import BeautifulSoup
+import urllib3
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+
 
 init(autoreset=True)
 
@@ -108,15 +113,12 @@ def get_cookies(domain):
     
     return cookies
 
-
-
 def detect_cms(response):
     cms = "Unknown"
     version = "Not detected"
     headers = response.headers
     html = response.text.lower()
 
-    # Überprüfen von x-powered-by Header
     if 'x-powered-by' in headers:
         powered_by = headers['x-powered-by'].lower()
         if 'wordpress' in powered_by:
@@ -196,7 +198,7 @@ def detect_cms(response):
                 pass
     
     return cms, version
-    
+
 def get_php_version(headers):
     php_version = "Unknown"
     if 'x-powered-by' in headers:
@@ -207,9 +209,15 @@ def get_php_version(headers):
     return php_version
 
 def get_webserver_info(headers):
-    server = headers.get('Server', 'Unknown')
-    x_powered_by = headers.get('X-Powered-By', 'Unknown')
-    return server, x_powered_by
+    try:
+        server = headers.get('Server', 'Unknown')
+        x_powered_by = headers.get('X-Powered-By', 'Unknown')
+        if isinstance(server, list):
+            server = server[0]
+        return server, x_powered_by
+    except Exception as e:
+        print(f"Could not detect web server information: {e}")
+        return 'Unknown', 'Unknown'
 
 def get_os_info(response):
     server = response.headers.get('Server', 'Unknown')
@@ -222,25 +230,53 @@ def get_os_info(response):
         os_info = 'IIS'
     return os_info
 
+def mx_lookup(site):
+    try:
+        mx_records = dns.resolver.resolve(site, 'MX')
+        if not mx_records:
+            print(f"{Fore.RED}[-] No MX records found for {site}{Fore.WHITE}")
+            return
+
+        mx_record = mx_records[0].exchange.to_text()
+        mx_ip = socket.gethostbyname(mx_record)
+        mx_hostname = socket.gethostbyaddr(mx_ip)[0]
+        mx_result = f"{Fore.GREEN}IP      :{Fore.GREEN} {mx_ip}\n{Fore.GREEN}HOSTNAME:{Fore.WHITE} {mx_hostname}{Fore.WHITE}"
+        print(f"{Fore.GREEN}[+] MX Lookup for{Fore.WHITE} {site}")
+
+        print(mx_result)
+    except dns.resolver.NoAnswer:
+        print(f"{Fore.RED}[-] Error: The DNS response does not contain an answer to the question: {site}. IN MX{Fore.WHITE}")
+    except dns.resolver.NXDOMAIN:
+        print(f"{Fore.RED}[-] Error: The domain {site} does not exist{Fore.WHITE}")
+    except dns.resolver.Timeout:
+        print(f"{Fore.RED}[-] Error: Timeout while resolving MX records for {site}{Fore.WHITE}")
+    except dns.exception.DNSException as e:
+        print(f"{Fore.RED}[-] DNS error: {e}{Fore.WHITE}")
+    except socket.gaierror as e:
+        print(f"{Fore.RED}[-] Error getting IP address for MX record: {e}{Fore.WHITE}")
+    except Exception as e:
+        print(f"{Fore.RED}[-] Unexpected error: {e}{Fore.WHITE}")
+
 def check_path(domain, path, headers, cookies):
     url = f"{domain.rstrip('/')}/{path.lstrip('/')}" 
     try:
         response = requests.get(url, headers=headers, cookies=cookies, verify=False, allow_redirects=True, timeout=10)
         if response.status_code == 200:
-            print(f"{fg}[+] Found:{fw} {path}")
+            print(f"{Fore.GREEN}[+] Found:{Fore.WHITE} {path}")
             if path == "/robots.txt":
-                print(f"\n{fg}Contents of robots.txt:{fw}\n{response.text}\n")
+                print(f"\n{Fore.GREEN}Contents of robots.txt:{Fore.WHITE}\n{response.text}\n")
             emails = set(re.findall(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', response.text))
             if emails:
-                print(f"{fg}[+] Emails found in {path}:{fw}")
+                print(f"{Fore.GREEN}[+] Emails found in {path}:{Fore.WHITE}")
                 for email in emails:
                     print(f"  - {email}")
         else:
-            print(f"{fr}[-] Path not found: {path}{fw}")
+            print(f"{Fore.RED}[-] Path not found: {path}{Fore.WHITE}")
     except requests.exceptions.TooManyRedirects:
-        print(f"{fr}[-] Too many redirects at: {url}{fw}")
+        print(f"{Fore.RED}[-] Too many redirects at: {url}{Fore.WHITE}")
     except requests.exceptions.RequestException as e:
-        print(f"{fr}[-] Error checking path {path}: {e}{fw}")
+        print(f"{Fore.RED}[-] Error checking path {path}: {e}{Fore.WHITE}")
+
 
 def scrape_wordpress_users(domain):
     users_url = domain + "/wp-json/wp/v2/users/"
@@ -284,7 +320,7 @@ def check_plugins_and_themes(domain, cookies):
 def validate_ssl(domain):
     try:
         context = ssl.create_default_context()
-        with socket.create_connection((domain, 443)) as sock:
+        with socket.create_connection((domain, 443), timeout=10) as sock:
             with context.wrap_socket(sock, server_hostname=domain) as ssock:
                 cert = ssock.getpeercert()
                 print(f"{Fore.GREEN}[+] SSL/TLS certificate details:{Fore.WHITE}")
