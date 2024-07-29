@@ -1,9 +1,10 @@
 import re
 import os
+import socket
 import requests
 from bs4 import BeautifulSoup
 from colorama import Fore
-from website_scanner.utils import check_captcha, check_security_txt, validate_ssl, check_cors, detect_cms, get_webserver_info, get_os_info, get_php_version, get_ip, check_path, check_plugins_and_themes, scrape_wordpress_users
+from website_scanner.utils import check_captcha, check_security_txt, validate_ssl, check_cors, detect_cms, get_webserver_info, get_os_info, get_php_version, get_ip, mx_lookup, check_path, check_plugins_and_themes, scrape_wordpress_users
 from website_scanner.check_file_uploads_and_xss import check_file_uploads_and_xss
 from website_scanner.vulnerabilities import detect_vulnerabilities
 from website_scanner.session_management import check_session_management,  check_sql_injection, extract_social_links
@@ -76,6 +77,7 @@ def scrape_info(domain, cookies):
                     break
 
             validate_ssl(domain)
+            mx_lookup(domain.replace("http://", "").replace("https://", "").replace("/", "")) 
             detect_vulnerabilities(cms, version)
             check_security_txt(domain)
             check_cors(domain)
@@ -133,22 +135,25 @@ def scrape_info(domain, cookies):
             elif cms == 'Wix':
                 print(f"{Fore.GREEN}[+] Wix CMS detected; limited checks due to the nature of Wix{Fore.WHITE}")
 
-            print(f"\n{Fore.CYAN}-----------------------------------{Fore.WHITE}")
-
             if cookies:
+                print(f"{Fore.CYAN}---------------------------------------{Fore.WHITE}")
+                print(f"{Fore.MAGENTA}        SECURITY INFORMATION         {Fore.WHITE}")
+                print(f"{Fore.CYAN}---------------------------------------{Fore.WHITE}")
                 check_plugins_and_themes(domain, cookies)
                 extract_social_links(domain)
                 check_captcha(domain, headers, cookies)
                 check_dom_changes(domain)
                 test_waf_bypass(domain)
                 check_session_management(domain)
+                check_sql_injection(domain)
             else:
                 print(f"{Fore.YELLOW}Skipping checks that require cookies.{Fore.WHITE}")
 
     except requests.exceptions.RequestException as e:
         print(f"{Fore.RED}[-] Error during scraping: {e}{Fore.WHITE}")
-
+ 
 def check_path(domain, path, headers, cookies):
+    
     url = f"{domain}/{path}"
     try:
         response = requests.get(url, headers=headers, cookies=cookies, timeout=10)
