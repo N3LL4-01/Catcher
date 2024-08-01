@@ -47,13 +47,21 @@ Catcher is a web vulnerability scanner that detects security holes in web applic
 - **CMS Detection**: Detects popular CMS like WordPress, Joomla, Drupal, and Typo3. 
 - **Domain Information**: Provides initial domain information like IP address, server details,Plugins etc.
 - **File Upload Checks**: Checks for insecure file uploads and configuration files.
-- **XSS Detection**: Detects Cross-Site Scripting (XSS) vulnerabilities.
 - **SQL Injection**: Checks for simple SQL injection vulnerabilities.
 - **Session Management**: Checks for session management vulnerabilities. 
 - **DOM Changes**: Analyzes insecure elements in the DOM. 
 - **Captcha Detection**: Detects missing captchas in forms.
 
 ![image](https://github.com/user-attachments/assets/05f19f99-2727-40e1-bc0f-af9e4c021758)
+
+<p align="center" href="https://www.animatedimages.org/cat-lines-562.htm"><img src="https://www.animatedimages.org/data/media/562/animated-line-image-0379.gif" border="0" alt="animated-line-image-0379" /></p>
+
+
+
+- **XSS Detection**: Detects Cross-Site Scripting (XSS) vulnerabilities.
+
+
+https://github.com/user-attachments/assets/2782845a-df19-4257-bf7c-25294ac4efe9
 
 
 
