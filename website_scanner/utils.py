@@ -199,8 +199,6 @@ def mx_lookup(site):
     except Exception as e:
         print(f"{Fore.RED}[-] Unexpected error: {e}{Fore.WHITE}")
 
-
-
 def scrape_wordpress_users(domain):
     users_url = domain + "/wp-json/wp/v2/users/"
     try:
@@ -238,7 +236,6 @@ def check_plugins_and_themes(domain, cookies):
             print(f"{Fore.RED}[-] No themes found.{Fore.WHITE}")
     except requests.exceptions.RequestException as e:
         print(f"{Fore.RED}Error checking plugins and themes: {e}{Fore.WHITE}")
-
 
 def validate_ssl(domain):
     try:
