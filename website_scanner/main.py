@@ -9,7 +9,7 @@ from colorama import Fore
 def run_scanner():
     print_logo()
     
-    domain = input(f"{Fore.YELLOW}Please enter the domain to scan (include http/https): {Fore.WHITE}")
+    domain = input(f"{Fore.YELLOW}Please enter the domain to scan (without http/https): {Fore.WHITE}")
     if not domain.startswith('http://') and not domain.startswith('https://'):
         domain = 'http://' + domain
     
