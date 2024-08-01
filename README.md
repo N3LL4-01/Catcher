@@ -44,7 +44,7 @@ Catcher is a web vulnerability scanner that detects security holes in web applic
 
 <p align="center" href="https://www.animatedimages.org/cat-lines-562.htm"><img src="https://www.animatedimages.org/data/media/562/animated-line-image-0379.gif" border="0" alt="animated-line-image-0379" /></p>
 
-- **CMS Detection**: Detects popular CMS like WordPress, Joomla, Drupal, and Typo3.
+- **CMS Detection**: Detects popular CMS like WordPress, Joomla, Drupal, and Typo3. 
 - **Domain Information**: Provides initial domain information like IP address, server details,Plugins etc.
 - **File Upload Checks**: Checks for insecure file uploads and configuration files.
 - **XSS Detection**: Detects Cross-Site Scripting (XSS) vulnerabilities.
@@ -87,6 +87,11 @@ Catcher is a web vulnerability scanner that detects security holes in web applic
     python run.py
     ```
 
+
+
 2. **Follow the prompts:**
     Enter the domain to scan (including `http://` or `https://`).
+
+## Credits 
+   thanks @xwolfde for CMS inspiration 
 
