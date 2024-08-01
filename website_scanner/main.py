@@ -24,8 +24,10 @@ def run_scanner():
             domain_list_file = arg
     if domain_list_file == '':
         domain_list = input(f"{Fore.YELLOW}Please enter the domain to scan (without http/https): {Fore.WHITE}")
-    with open(domain_list_file) as f:
-        domain_list = f.read()
+    else:
+        with open(domain_list_file) as f:
+            domain_list = f.read()
+            
     domain_list = domain_list.splitlines()
     for domain in domain_list:
         if not domain.startswith('http://') and not domain.startswith('https://'):
@@ -45,6 +47,7 @@ def run_scanner():
                 print(f"{Fore.CYAN}---------------------------------------{Fore.WHITE}")
                 print(f"{Fore.MAGENTA}         DOMAIN INFORMATION         {Fore.WHITE}")
                 print(f"{Fore.CYAN}---------------------------------------{Fore.WHITE}")
+
         else:
             print(f"{Fore.RED}[-] No cookies collected. Skipping cookie-dependent checks.{Fore.WHITE}")
         
