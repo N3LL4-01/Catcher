@@ -1,5 +1,3 @@
-# path_checker.py
-
 import re
 import requests
 from colorama import Fore
