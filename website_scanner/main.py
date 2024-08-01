@@ -21,7 +21,7 @@ def run_scanner():
         elif opt in ("-l", "--domainlist"):
             domain_list_file = arg
     if domain_list_file == '':
-        domain_list = input(f"{Fore.YELLOW}Please enter the domain to scan (include http/https): {Fore.WHITE}")
+        domain_list = input(f"{Fore.YELLOW}Please enter the domain to scan (without http/https): {Fore.WHITE}")
     else:
         with open(domain_list_file) as f:
             domain_list = f.read()
@@ -35,11 +35,15 @@ def run_scanner():
         cookies = get_cookies(domain)
         
         if cookies:
-            print(f"\n{Fore.CYAN}--------------COOKIE---------------{Fore.WHITE}\n")
+            print(f"{Fore.CYAN}---------------------------------------{Fore.WHITE}")
+            print(f"{Fore.MAGENTA}             COOKIE                    {Fore.WHITE}")
+            print(f"{Fore.CYAN}---------------------------------------{Fore.WHITE}")
             print(f"{Fore.GREEN}[+] Cookies collected:{Fore.WHITE}")
             for name, value in cookies.items():
                 print(f"  - {name}: {value}")
-            print(f"\n{Fore.CYAN}----------------INFO--------------{Fore.WHITE}\n")
+                print(f"{Fore.CYAN}---------------------------------------{Fore.WHITE}")
+                print(f"{Fore.MAGENTA}         DOMAIN INFORMATION         {Fore.WHITE}")
+                print(f"{Fore.CYAN}---------------------------------------{Fore.WHITE}")
         else:
             print(f"{Fore.RED}[-] No cookies collected. Skipping cookie-dependent checks.{Fore.WHITE}")
         
