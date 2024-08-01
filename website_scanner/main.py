@@ -67,6 +67,3 @@ def run_scanner():
             check_file_uploads_and_xss(domain, cookies, headers={'User-Agent': 'Mozilla/5.0'})
         except Exception as e:
             print(f"{Fore.RED}[-] Error during file uploads and XSS check: {e}{Fore.WHITE}")
-
-if __name__ == "__main__":
-    run_scanner()
