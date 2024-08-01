@@ -15,14 +15,22 @@ def run_scanner():
     
     print(f"\n{Fore.LIGHTYELLOW_EX}Starting to scan the domain:{Fore.RESET} {Fore.WHITE}{domain}{Fore.WHITE}\n")
     
+    print(f"{Fore.CYAN}---------------------------------------{Fore.WHITE}")
+    print(f"{Fore.MAGENTA}             COOKIE                    {Fore.WHITE}")
+    print(f"{Fore.CYAN}---------------------------------------{Fore.WHITE}")
+    
     cookies = get_cookies(domain)
+
+
     
     if cookies:
-        print(f"\n{Fore.CYAN}--------------COOKIE---------------{Fore.WHITE}\n")
         print(f"{Fore.GREEN}[+] Cookies collected:{Fore.WHITE}")
         for name, value in cookies.items():
             print(f"  - {name}: {value}")
-        print(f"\n{Fore.CYAN}----------------INFO--------------{Fore.WHITE}\n")
+        
+        print(f"{Fore.CYAN}---------------------------------------{Fore.WHITE}")
+        print(f"{Fore.MAGENTA}         DOMAIN INFORMATION         {Fore.WHITE}")
+        print(f"{Fore.CYAN}---------------------------------------{Fore.WHITE}")
     else:
         print(f"{Fore.RED}[-] No cookies collected. Skipping cookie-dependent checks.{Fore.WHITE}")
     
