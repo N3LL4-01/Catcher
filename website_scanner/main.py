@@ -8,6 +8,7 @@ from colorama import Fore
 import sys, getopt
 def run_scanner():
     print_logo()
+
     domain_list_file = ''
     try:
         opts, args = getopt.getopt(sys.argv[1:],"hl:",["domainlist="])
@@ -22,9 +23,8 @@ def run_scanner():
             domain_list_file = arg
     if domain_list_file == '':
         domain_list = input(f"{Fore.YELLOW}Please enter the domain to scan (without http/https): {Fore.WHITE}")
-    else:
-        with open(domain_list_file) as f:
-            domain_list = f.read()
+    with open(domain_list_file) as f:
+        domain_list = f.read()
     domain_list = domain_list.splitlines()
     for domain in domain_list:
         if not domain.startswith('http://') and not domain.startswith('https://'):
