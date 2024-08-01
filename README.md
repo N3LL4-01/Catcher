@@ -61,7 +61,7 @@ Catcher is a web vulnerability scanner that detects security holes in web applic
 - **XSS Detection**: Detects Cross-Site Scripting (XSS) vulnerabilities.
 
 
-https://github.com/user-attachments/assets/2782845a-df19-4257-bf7c-25294ac4efe9
+![gifff](https://github.com/user-attachments/assets/334b2ecd-5333-448b-8b63-942d454aac1e)
 
 
 
