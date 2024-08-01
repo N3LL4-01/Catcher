@@ -131,7 +131,7 @@ def scrape_info(domain, cookies):
             else:
                 print(f"{Fore.YELLOW}Skipping checks that require cookies.{Fore.WHITE}")
 
-            check_file_uploads_and_xss(domain, cookies, headers)
+            #check_file_uploads_and_xss(domain, cookies, headers)
 
     except requests.exceptions.RequestException as e:
         print(f"{Fore.RED}[-] Error during scraping: {e}{Fore.WHITE}")
