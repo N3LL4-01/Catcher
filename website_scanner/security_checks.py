@@ -11,11 +11,17 @@ from website_scanner.session_management import check_session_management,  check_
 from website_scanner.dom_changes import check_dom_changes
 from website_scanner.waf_bypass import test_waf_bypass
 import warnings
+from website_scanner.CMS.wix import check_wix_paths
+from website_scanner.CMS.wordpress import check_wordpress_paths
+from website_scanner.CMS.drupal import check_drupal_paths
+from website_scanner.CMS.joomla import check_joomla_paths
+from website_scanner.CMS.typo3 import check_typo3_paths
+from website_scanner.CMS.magento import check_magento_paths
 from urllib3.exceptions import InsecureRequestWarning
 
 def scrape_info(domain, cookies):
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, wie Gecko) Chrome/108.0.0.0 Safari/537.36'
     }
     warnings.filterwarnings("ignore", category=InsecureRequestWarning)
 
@@ -24,8 +30,13 @@ def scrape_info(domain, cookies):
         if response.status_code == 200:
             soup = BeautifulSoup(response.text, 'html.parser')
 
-            cms, version = detect_cms(response)
+            cms, version, cms_info = detect_cms(response, domain)
             print(f"{Fore.GREEN}[+] CMS Detected:{Fore.WHITE} {cms} (Version: {version})")
+            print(f"{Fore.GREEN}[+] CMS Info:{Fore.WHITE}")
+            print(f"  - Template: {cms_info['template']}")
+            print(f"  - Plugins: {', '.join(set(cms_info['plugins']))}")  # Remove duplicates
+            print(f"  - Security Headers: {cms_info['security_headers']}")
+            print(f"  - File Upload Vulnerability: {cms_info['file_upload_vulnerability']}")
 
             server, x_powered_by = get_webserver_info(response.headers)
             print(f"{Fore.GREEN}[+] Web Server:{Fore.WHITE} {server}")
@@ -42,7 +53,7 @@ def scrape_info(domain, cookies):
 
             check_path(domain, "/robots.txt", headers, cookies)
 
-            emails = set(re.findall(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', response.text))
+            emails = set(re.findall(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a.z]{2,}\b', response.text))
             if emails:
                 print(f"{Fore.GREEN}[+] Emails found:{Fore.WHITE}")
                 for email in emails:
@@ -60,7 +71,7 @@ def scrape_info(domain, cookies):
                     try:
                         imp_response = requests.get(impressum_url, headers=headers, cookies=cookies, verify=False, allow_redirects=True, timeout=10)
                         if imp_response.status_code == 200:
-                            imp_emails = set(re.findall(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b', imp_response.text))
+                            imp_emails = set(re.findall(r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a.z]{2,}\b', imp_response.text))
                             if imp_emails:
                                 print(f"{Fore.GREEN}[+] Emails found in Impressum/Legal Notice:{Fore.WHITE}")
                                 for email in imp_emails:
@@ -87,53 +98,17 @@ def scrape_info(domain, cookies):
                 print(f"{Fore.RED}[-] No Impressum/Legal Notice found.{Fore.WHITE}")
 
             if cms == 'WordPress':
-                wp_paths = [
-                    'wp-includes/', 'wp-includes/images/', 'wp-content/',
-                    'wp-content/uploads/', 'wp-content/themes/', 'wp-content/plugins/',
-                    'wp-content/plugins/hustle/views/admin/dashboard/', 'wp-admin/',
-                    'wp-cron.php', 'readme.html', 'xmlrpc.php'
-                ]
-                for path in wp_paths:
-                    check_path(domain, path, headers, cookies)
-
+                check_wordpress_paths(domain, headers, cookies)
             elif cms == 'Joomla':
-                joomla_paths = [
-                    'administrator/', 'components/', 'images/', 'includes/',
-                    'language/', 'libraries/', 'media/', 'modules/',
-                    'plugins/', 'templates/', 'cache/', 'cli/', 'logs/', 
-                    'tmp/', 'xmlrpc/'
-                ]
-                for path in joomla_paths:
-                    check_path(domain, path, headers, cookies)
-
+                check_joomla_paths(domain, headers, cookies)
             elif cms == 'Drupal':
-                drupal_paths = [
-                    'core/', 'modules/', 'profiles/', 'sites/',
-                    'themes/', 'includes/', 'misc/', 'scripts/',
-                    'web.config', 'robots.txt'
-                ]
-                for path in drupal_paths:
-                    check_path(domain, path, headers, cookies)
-
+                check_drupal_paths(domain, headers, cookies)
             elif cms == 'Typo3':
-                typo3_paths = [
-                    'typo3/', 'typo3conf/', 'typo3temp/', 'typo3_src/', 
-                    'uploads/', 'fileadmin/', 'typo3_src/', 'tslib/', 'typo3/sysext/'
-                ]
-                for path in typo3_paths:
-                    check_path(domain, path, headers, cookies)
-
+                check_typo3_paths(domain, headers, cookies)
             elif cms == 'Magento':
-                magento_paths = [
-                    'pub/static/', 'var/log/', 'app/etc/', 'vendor/',
-                    'pub/media/', 'app/code/', 'setup/', 'bin/', 'dev/', 
-                    'lib/', 'phpserver/', 'var/cache/', 'var/page_cache/'
-                ]
-                for path in magento_paths:
-                    check_path(domain, path, headers, cookies)
-
+                check_magento_paths(domain, headers, cookies)
             elif cms == 'Wix':
-                print(f"{Fore.GREEN}[+] Wix CMS detected; limited checks due to the nature of Wix{Fore.WHITE}")
+                check_wix_paths(domain, headers, cookies)
 
             if cookies:
                 print(f"{Fore.CYAN}---------------------------------------{Fore.WHITE}")
@@ -151,16 +126,4 @@ def scrape_info(domain, cookies):
 
     except requests.exceptions.RequestException as e:
         print(f"{Fore.RED}[-] Error during scraping: {e}{Fore.WHITE}")
- 
-def check_path(domain, path, headers, cookies):
-    
-    url = f"{domain}/{path}"
-    try:
-        response = requests.get(url, headers=headers, cookies=cookies, timeout=10)
-        if response.status_code == 200:
-            print(f"{Fore.GREEN}[+] Accessible path found: {url}{Fore.WHITE}")
-        else:
-            print(f"{Fore.YELLOW}[-] Path not accessible: {url} (Status code: {response.status_code}){Fore.WHITE}")
-    except requests.RequestException as e:
-        print(f"{Fore.RED}[-] Error accessing path {url}: {e}{Fore.WHITE}")
 
