@@ -2,6 +2,7 @@ from website_scanner.utils import print_logo, get_cookies, get_ip
 from website_scanner.security_checks import scrape_info
 from website_scanner.session_management import check_session_management, check_sql_injection
 from website_scanner.check_file_uploads_and_xss import check_file_uploads_and_xss
+import re
 import urllib3
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 from colorama import Fore
