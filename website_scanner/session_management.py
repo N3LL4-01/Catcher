@@ -9,6 +9,8 @@ from bs4 import BeautifulSoup
 import platform
 import requests
 import os
+import re
+
 
 fg = Fore.GREEN
 fr = Fore.RED
