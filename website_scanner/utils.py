@@ -199,6 +199,8 @@ def mx_lookup(site):
     except Exception as e:
         print(f"{Fore.RED}[-] Unexpected error: {e}{Fore.WHITE}")
 
+import requests
+
 def scrape_wordpress_users(domain):
     users_url = domain + "/wp-json/wp/v2/users/"
     try:
@@ -214,7 +216,31 @@ def scrape_wordpress_users(domain):
         else:
             print(f"{fr}[-] Error fetching WordPress users: Status code {response.status_code}{fw}")
     except requests.exceptions.RequestException as e:
-        print(f"{fr}[-] Error fetching WordPress users: {e}{fw}")        
+        print(f"{fr}[-] Error fetching WordPress users: {e}{fw}")
+
+    authors_url = domain + "/wp-json/wp/v2/posts/"
+    try:
+        response = requests.get(authors_url, verify=False)
+        if response.status_code == 200:
+            posts = response.json()
+            authors = {post['author'] for post in posts}
+            if authors:
+                print(f"\n{fg}[+] WordPress Authors:{fw}")
+                for author_id in authors:
+                    author_url = domain + f"/wp-json/wp/v2/users/{author_id}"
+                    author_response = requests.get(author_url, verify=False)
+                    if author_response.status_code == 200:
+                        author = author_response.json()
+                        print(f"  - {author['name']} ({author['slug']})")
+                    else:
+                        print(f"{fr}[-] Error fetching author details for author ID {author_id}{fw}")
+            else:
+                print(f"{fr}[-] No WordPress authors found.{fw}")
+        else:
+            print(f"{fr}[-] Error fetching WordPress posts: Status code {response.status_code}{fw}")
+    except requests.exceptions.RequestException as e:
+        print(f"{fr}[-] Error fetching WordPress posts: {e}{fw}")
+      
 
 def check_plugins_and_themes(domain, cookies):
     try:
