@@ -6,6 +6,7 @@ import platform
 import sys
 import os
 import dns.resolver
+import xml.etree.ElementTree as ET
 from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 from selenium.webdriver.firefox.service import Service as FirefoxService
