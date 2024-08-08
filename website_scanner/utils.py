@@ -202,13 +202,14 @@ def mx_lookup(site):
 import requests
 
 def scrape_wordpress_users(domain):
+    # Fetch users from REST API
     users_url = domain + "/wp-json/wp/v2/users/"
     try:
         response = requests.get(users_url, verify=False)
         if response.status_code == 200:
             users = response.json()
             if users:
-                print(f"\n{fg}[+] WordPress Users:{fw}")
+                print(f"\n{fg}[+] WordPress Users (from REST API):{fw}")
                 for user in users:
                     print(f"  - {user['name']} ({user['slug']})")
             else:
@@ -218,6 +219,7 @@ def scrape_wordpress_users(domain):
     except requests.exceptions.RequestException as e:
         print(f"{fr}[-] Error fetching WordPress users: {e}{fw}")
 
+    # Fetch authors from REST API
     authors_url = domain + "/wp-json/wp/v2/posts/"
     try:
         response = requests.get(authors_url, verify=False)
@@ -225,7 +227,7 @@ def scrape_wordpress_users(domain):
             posts = response.json()
             authors = {post['author'] for post in posts}
             if authors:
-                print(f"\n{fg}[+] WordPress Authors:{fw}")
+                print(f"\n{fg}[+] WordPress Authors (from REST API):{fw}")
                 for author_id in authors:
                     author_url = domain + f"/wp-json/wp/v2/users/{author_id}"
                     author_response = requests.get(author_url, verify=False)
@@ -240,6 +242,32 @@ def scrape_wordpress_users(domain):
             print(f"{fr}[-] Error fetching WordPress posts: Status code {response.status_code}{fw}")
     except requests.exceptions.RequestException as e:
         print(f"{fr}[-] Error fetching WordPress posts: {e}{fw}")
+
+    # Fetch authors from RSS feed
+    rss_url = domain + "/feed/"
+    try:
+        response = requests.get(rss_url, verify=False)
+        if response.status_code == 200:
+            root = ET.fromstring(response.content)
+            namespace = {'content': 'http://purl.org/rss/1.0/modules/content/', 'dc': 'http://purl.org/dc/elements/1.1/'}
+            authors = set()
+            for item in root.findall('channel/item'):
+                author = item.find('dc:creator', namespace)
+                if author is not None:
+                    authors.add(author.text)
+            if authors:
+                print(f"\n{fg}[+] WordPress Authors (from RSS feed):{fw}")
+                for author in authors:
+                    print(f"  - {author}")
+            else:
+                print(f"{fr}[-] No WordPress authors found in RSS feed.{fw}")
+        else:
+            print(f"{fr}[-] Error fetching RSS feed: Status code {response.status_code}{fw}")
+    except requests.exceptions.RequestException as e:
+        print(f"{fr}[-] Error fetching RSS feed: {e}{fw}")
+    except ET.ParseError as e:
+        print(f"{fr}[-] Error parsing RSS feed: {e}{fw}")
+
       
 
 def check_plugins_and_themes(domain, cookies):
