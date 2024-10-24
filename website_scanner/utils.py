@@ -54,7 +54,7 @@ def print_logo():
         "⣿⣿⣿⢾⣿⣷⠀⠀⠀⠀⡠⠤⢄⠀⠀⠀⠠⣿⣿⣷⠀⢸⣿⣿╚██████╗██║  ██║   ██║   ╚██████╗██║  ██║███████╗██║  ██║",
         "⣿⣿⣿⡀⠉⠀⠀⠀⠀⠀⢄⠀⢀⠀⠀⠀⠀⠉⠉⠁⠀⠀⣿⣿⣿╚═════╝╚═╝  ╚═╝   ╚═╝    ╚═════╝╚═╝  ╚═╝╚══════╝ ╚═╝  ╚═╝",
         "⣿⣿⣿⣧⠀⠀⠀⠀⠀⠀⠀⠈⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢹⣿⣿",
-        "⣿⣿⣿⣿⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿" @n3ll4 v0.1,
+        "⣿⣿⣿⣿⠃⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⣿  @n3ll4 v0.1",
     ]
 
     for line in logo:
@@ -62,9 +62,9 @@ def print_logo():
         for char in line:
             if char == '█':
                 colored_line += logo_magenta + char
-            elif char == '▓' or char == '⢿':
+            elif char in ['▓', '⢿']:
                 colored_line += logo_magenta + char
-            elif char == '▒' or char == '░' or char == '⡏' or char == '⣿' or char == '⣧' or char == '⠏':
+            elif char in ['▒', '░', '⡏', '⣿', '⣧', '⠏']:
                 colored_line += logo_cyan + char
             else:
                 colored_line += reset + char
